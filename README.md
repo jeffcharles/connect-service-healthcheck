@@ -1,5 +1,9 @@
 # connect-service-healthcheck
 
+[![NPM](https://nodei.co/npm/connect-service-healthcheck.png)](https://nodei.co/npm/connect-service-healthcheck/)
+
+[![Build Status](https://travis-ci.org/jeffcharles/connect-service-healthcheck.svg?branch=master)](https://travis-ci.org/jeffcharles/connect-service-healthcheck)
+
 Adds healthcheck routes to your service.
 
 - `/` - checks if your web server is serving traffic
