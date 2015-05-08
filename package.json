@@ -4,9 +4,7 @@
   "description": "Connect middleware for adding healthchecks to services",
   "main": "index.js",
   "scripts": {
-    "ci": "lint && test",
-    "lint": "jshint . && jscs .",
-    "test": "mocha tests.js"
+    "test": "jshint . && jscs . && mocha tests.js"
   },
   "keywords": [
     "healthcheck"
