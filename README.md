@@ -9,22 +9,24 @@ Adds healthcheck routes to your service.
 
 ## How to use
 
-    var express = require('express'),
-      healthcheck = require('connect-service-healthcheck'),
-      version = require('./version');
+```JavaScript
+var express = require('express'),
+  healthcheck = require('connect-service-healthcheck'),
+  version = require('./version');
 
-    var app = express();
-    app.use(
-      '/healthcheck',
-      healthcheck({
-        detailedHealthcheck: function(req, res) {
-          res.sendStatus(204);
-        },
-        memoryName: 'name',
-        memoryPass: 'pass',
-        version: version
-      })
-    );
+var app = express();
+app.use(
+  '/healthcheck',
+  healthcheck({
+    detailedHealthcheck: function(req, res) {
+      res.sendStatus(204);
+    },
+    memoryName: 'name',
+    memoryPass: 'pass',
+    version: version
+  })
+);
+```
 
 ## Configuration
 
