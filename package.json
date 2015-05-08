@@ -9,7 +9,7 @@
   "keywords": [
     "healthcheck"
   ],
-  "author": "Jeffrey Charles <jeffrey.charles@gmail.com>",
+  "author": "Jeffrey Charles <jeffreycharles@beyondtechnicallycorrect.com>",
   "license": "MIT",
   "dependencies": {
     "basic-auth": "^1.0.1",
