@@ -1,6 +1,6 @@
 {
   "name": "connect-service-healthcheck",
-  "version": "1.0.1",
+  "version": "2.0.0",
   "description": "Connect middleware for adding healthchecks to services",
   "main": "index.js",
   "scripts": {
@@ -17,7 +17,10 @@
   },
   "dependencies": {
     "basic-auth": "^1.0.1",
-    "express": "^4.12.3"
+    "bluebird": "^2.9.25",
+    "errio": "^1.2.1",
+    "express": "^4.12.3",
+    "lodash": "^3.8.0"
   },
   "optionalDependencies": {
     "heapdump": "^0.3.5"

@@ -1,4 +1,5 @@
 var _ = require('lodash'),
+  BPromise = require('bluebird'),
   express = require('express'),
   request = require('supertest-as-promised'),
   healthcheck = require('./');
@@ -12,39 +13,92 @@ function createApp(opts) {
 
 describe('simple healthcheck', function() {
   it('should return 200', function() {
-    request(createApp()).get('/healthcheck').expect(200);
+    return request(createApp()).get('/healthcheck').expect(200);
   });
 });
 
 describe('detailed healthcheck', function() {
-  it('should return 404 if not defined', function() {
-    request(createApp()).get('/healthcheck/detailed').expect(404);
-  });
-
-  it('should return run the detailed healthcheck if defined', function() {
-    function detailedHealthcheck(req, res) {
-      res.json({msg: 'hello!'});
-    }
-    request(createApp({detailedHealthcheck: detailedHealthcheck}))
+  it('should work with no component healthchecks', function() {
+    return request(createApp({componentHealthchecks: {}}))
       .get('/healthcheck/detailed')
       .expect(200)
-      .expect('{"msg": "hello!"}');
+      .expect({});
+  });
+
+  it('should return 200 with two passing healthchecks', function() {
+    var healthchecks = {
+      foo: function() {
+        return BPromise.resolve('good');
+      },
+      bar: function() {
+        return BPromise.resolve('great');
+      }
+    };
+    return request(createApp({componentHealthchecks: healthchecks}))
+      .get('/healthcheck/detailed')
+      .expect(200)
+      .expect({foo: 'good', bar: 'great'});
+  });
+
+  it('should return 500 with one passing and one failing healthcheck', function() {
+    var healthchecks = {
+      foo: function() {
+        return BPromise.reject(new Error('bad'));
+      },
+      bar: function() {
+        return BPromise.resolve('great');
+      }
+    };
+    return request(createApp({componentHealthchecks: healthchecks}))
+      .get('/healthcheck/detailed')
+      .expect(500)
+      .expect({foo: {name: 'Error', message: 'bad'}, bar: 'great'});
+  });
+
+  it('should return 500 with two failing healthchecks', function() {
+    var healthchecks = {
+      foo: function() {
+        return BPromise.reject(new Error('bad'));
+      },
+      bar: function() {
+        return BPromise.reject(new Error('worse'));
+      }
+    };
+    return request(createApp({componentHealthchecks: healthchecks}))
+      .get('/healthcheck/detailed')
+      .expect(500)
+      .expect({
+        foo: {name: 'Error', message: 'bad'},
+        bar: {name: 'Error', message: 'worse'}
+      });
+  });
+
+  it('should not fail if thing thrown is not an error', function() {
+    var healthchecks = {
+      foo: function() {
+        return BPromise.reject('bad');
+      }
+    };
+    return request(createApp({componentHealthchecks: healthchecks}))
+      .get('/healthcheck/detailed')
+      .expect(500)
+      .expect({foo: 'bad'});
   });
 });
 
 describe('memory dump', function() {
   it('should return 401 given missing creds', function() {
-    request(createApp()).get('/healthcheck/memory').expect(401);
+    return request(createApp()).get('/healthcheck/memory').expect(401);
   });
 
   it('should return 401 given invalid creds', function() {
-    request(createApp()).get('/healthcheck/memory')
+    return request(createApp()).get('/healthcheck/memory')
       .set('Authorization', 'Basic 12ab')
       .expect(401);
   });
 
   it('should return 200 with file given valid creds', function() {
-    request(createApp()).get('/healthcheck/memory')
+    return request(createApp()).get('/healthcheck/memory')
       .set('Authorization', 'Basic Zm9vOmZvbw==')
       .expect(200);
   });
@@ -52,13 +106,13 @@ describe('memory dump', function() {
 
 describe('version', function() {
   it('should return 404 if missing version', function() {
-    request(createApp()).get('/healthcheck/version').expect(404);
+    return request(createApp()).get('/healthcheck/version').expect(404);
   });
 
   it('should return 200 with the version if provided', function() {
-    request(createApp({version: {hash: '1234'}}))
+    return request(createApp({version: {hash: '1234'}}))
       .get('/healthcheck/version')
       .expect(200)
-      .expect('{"version": {"hash": "1234"}}');
+      .expect('{"hash":"1234"}');
   });
 });
