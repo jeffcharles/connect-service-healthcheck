@@ -8,7 +8,7 @@ var _ = require('lodash'),
  * Creates a healthcheck router
  *
  * @param {Object} opts - Options
- * @param {Object.<string, function>} opts.componentHealthchecks - Healthchecks to perform on dependent components (object with identifiers mapping to functions that return a promise)
+ * @param {function} opts.componentHealthchecks - Healthchecks to perform on dependent components (object with identifiers mapping to promises)
  * @param {string} opts.memoryName - The username for fetching memory
  * @param {string} opts.memoryPass - The password for fetching memory
  * @param {Object} [opts.version] - Version information
@@ -26,27 +26,17 @@ module.exports = function createHealthcheckRouter(opts) {
   });
 
   router.get('/detailed', function(req, res, next) {
-    var keys = Object.keys(opts.componentHealthchecks);
-    var promises = _.map(keys, function(key) {
-      return opts.componentHealthchecks[key]();
-    });
-    BPromise.settle(promises).then(function(results) {
-      var anyErrors = _.any(results, function(result) {
-        return result.isRejected();
+    var anyErrors = false;
+    var nonfailingChecks =
+      _.mapValues(opts.componentHealthchecks(), function(promise) {
+        return promise.then(null, function(err) {
+          anyErrors = true;
+          var isLikelyErrorType = err.name && err.message;
+          return isLikelyErrorType ? Errio.toObject(err) : err;
+        });
       });
-      var values = _.map(results, function(result) {
-        if (result.isFulfilled()) {
-          return result.value();
-        }
-        var reason = result.reason();
-        var isLikelyError = reason.name && reason.message;
-        return isLikelyError ? Errio.toObject(result.reason()) : reason;
-      });
-      var obj = {};
-      values.forEach(function(v, i) {
-        obj[keys[i]] = v;
-      });
-      res.status(anyErrors ? 500 : 200).json(obj);
+    BPromise.props(nonfailingChecks).then(function(results) {
+      res.status(anyErrors ? 500 : 200).json(results);
     }).then(null, function(err) {
       next(err);
     });
