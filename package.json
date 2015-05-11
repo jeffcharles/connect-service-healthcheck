@@ -1,6 +1,6 @@
 {
   "name": "connect-service-healthcheck",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Connect middleware for adding healthchecks to services",
   "main": "index.js",
   "scripts": {

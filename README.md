@@ -14,7 +14,8 @@ Adds healthcheck routes to your service.
 ## How to use
 
 ```JavaScript
-var express = require('express'),
+var BPromise = require('bluebird'),
+  express = require('express'),
   healthcheck = require('connect-service-healthcheck'),
   version = require('./version');
 
@@ -22,8 +23,10 @@ var app = express();
 app.use(
   '/healthcheck',
   healthcheck({
-    detailedHealthcheck: function(req, res) {
-      res.sendStatus(204);
+    componentHealthchecks: {
+      foo: function() {
+        return BPromise.resolve('foo is good');
+      }
     },
     memoryName: 'name',
     memoryPass: 'pass',
@@ -36,7 +39,7 @@ app.use(
 
 The middleware expects an options object with four members:
 
-- `detailedHealthcheck` (optional) - connect middleware to render a detailed healthcheck
+- `componentHealthchecks` (mandatory) - An object containing functions returning a promise that checks a dependent component
 - `memoryName` (mandatory) - a username necessary for performing a memory dump
 - `memoryPass` (mandatory) - a password necessary for performing a memory dump
 - `version` (optional) - an object containing version information
