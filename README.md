@@ -14,8 +14,7 @@ Adds healthcheck routes to your service.
 ## How to use
 
 ```JavaScript
-var BPromise = require('bluebird'),
-  express = require('express'),
+var express = require('express'),
   healthcheck = require('connect-service-healthcheck'),
   version = require('./version');
 
@@ -23,10 +22,8 @@ var app = express();
 app.use(
   '/healthcheck',
   healthcheck({
-    componentHealthchecks: {
-      foo: function() {
-        return BPromise.resolve('foo is good');
-      }
+    componentHealthchecks: function() {
+      return {foo: BPromise.resolve('foo is good')};
     },
     memoryName: 'name',
     memoryPass: 'pass',

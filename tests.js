@@ -19,21 +19,19 @@ describe('simple healthcheck', function() {
 
 describe('detailed healthcheck', function() {
   it('should work with no component healthchecks', function() {
-    return request(createApp({componentHealthchecks: {}}))
+    function healthchecks() {
+      return {};
+    }
+    return request(createApp({componentHealthchecks: healthchecks}))
       .get('/healthcheck/detailed')
       .expect(200)
       .expect({});
   });
 
   it('should return 200 with two passing healthchecks', function() {
-    var healthchecks = {
-      foo: function() {
-        return BPromise.resolve('good');
-      },
-      bar: function() {
-        return BPromise.resolve('great');
-      }
-    };
+    function healthchecks() {
+      return {foo: BPromise.resolve('good'), bar: BPromise.resolve('great')};
+    }
     return request(createApp({componentHealthchecks: healthchecks}))
       .get('/healthcheck/detailed')
       .expect(200)
@@ -41,14 +39,12 @@ describe('detailed healthcheck', function() {
   });
 
   it('should return 500 with one passing and one failing healthcheck', function() {
-    var healthchecks = {
-      foo: function() {
-        return BPromise.reject(new Error('bad'));
-      },
-      bar: function() {
-        return BPromise.resolve('great');
-      }
-    };
+    function healthchecks() {
+      return {
+        foo: BPromise.reject(new Error('bad')),
+        bar: BPromise.resolve('great')
+      };
+    }
     return request(createApp({componentHealthchecks: healthchecks}))
       .get('/healthcheck/detailed')
       .expect(500)
@@ -56,14 +52,12 @@ describe('detailed healthcheck', function() {
   });
 
   it('should return 500 with two failing healthchecks', function() {
-    var healthchecks = {
-      foo: function() {
-        return BPromise.reject(new Error('bad'));
-      },
-      bar: function() {
-        return BPromise.reject(new Error('worse'));
-      }
-    };
+    function healthchecks() {
+      return {
+        foo: BPromise.reject(new Error('bad')),
+        bar: BPromise.reject(new Error('worse'))
+      };
+    }
     return request(createApp({componentHealthchecks: healthchecks}))
       .get('/healthcheck/detailed')
       .expect(500)
@@ -74,11 +68,9 @@ describe('detailed healthcheck', function() {
   });
 
   it('should not fail if thing thrown is not an error', function() {
-    var healthchecks = {
-      foo: function() {
-        return BPromise.reject('bad');
-      }
-    };
+    function healthchecks() {
+      return {foo: BPromise.reject('bad')};
+    }
     return request(createApp({componentHealthchecks: healthchecks}))
       .get('/healthcheck/detailed')
       .expect(500)
